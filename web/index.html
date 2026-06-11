@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LANCER1911 PDF Workshop</title>
+<style>
+  :root{
+    --bg:#14161B; --panel:#1B1E26; --panel-2:#21252F;
+    --line:#2C313D; --line-soft:#252934;
+    --ink:#EDEFF4; --muted:#9AA2B1; --faint:#646C7C;
+    --amber:#F2A341; --amber-soft:#F2A34120; --amber-line:#F2A34155;
+    --green:#5BD6A0; --red:#F2697B; --blue:#6FA8FF;
+    --radius:14px;
+    --mono:'SF Mono',ui-monospace,'Cascadia Code','Roboto Mono',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',
+           'Microsoft YaHei',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--sans);
+    font-size:14px; line-height:1.5; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(900px 500px at 85% -10%,#1d212c 0%,transparent 60%);
+  }
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:#333845;border-radius:8px}
+  ::-webkit-scrollbar-thumb:hover{background:#3f4554}
+
+  .app{display:flex;flex-direction:column;height:100vh}
+
+  /* ---------- 顶栏 ---------- */
+  header{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 24px 14px; border-bottom:1px solid var(--line-soft);
+  }
+  .logo{
+    width:34px;height:34px;border-radius:9px;flex:none;
+    background:linear-gradient(145deg,var(--amber),#E07B2C);
+    display:grid;place-items:center;color:#1a1205;font-weight:800;
+    box-shadow:0 4px 14px #f2a34133;font-size:13px;letter-spacing:-.5px;
+  }
+  .brand h1{font-size:16px;font-weight:650;letter-spacing:.3px}
+  .brand p{font-size:11px;color:var(--faint);font-family:var(--mono)}
+  header .spacer{flex:1}
+  .dl-chip{
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);
+    padding:7px 13px;border-radius:9px;color:var(--muted);
+    font-size:12px;transition:.15s;
+  }
+  .dl-chip:hover{border-color:var(--amber-line);color:var(--ink)}
+  .dl-chip svg{width:15px;height:15px}
+
+  /* ---------- 标签页 ---------- */
+  nav{display:flex;gap:6px;padding:14px 24px 0}
+  .tab{
+    position:relative;display:flex;align-items:center;gap:9px;
+    padding:11px 18px;border-radius:11px 11px 0 0;cursor:pointer;
+    color:var(--muted);font-weight:550;font-size:13.5px;transition:.15s;
+    border:1px solid transparent;border-bottom:none;
+  }
+  .tab:hover{color:var(--ink);background:#1a1d25}
+  .tab.active{color:var(--ink);background:var(--panel);border-color:var(--line)}
+  .tab.active::after{
+    content:"";position:absolute;left:14px;right:14px;top:0;height:2px;
+    background:var(--amber);border-radius:2px;
+  }
+  .tab .ic{width:17px;height:17px;flex:none}
+  .tab .num{
+    font-family:var(--mono);font-size:10px;color:var(--faint);
+    background:#0000;border:1px solid var(--line);border-radius:5px;
+    padding:1px 5px;
+  }
+  .tab.active .num{color:var(--amber);border-color:var(--amber-line)}
+
+  /* ---------- 主体 ---------- */
+  main{
+    flex:1;overflow:hidden;margin:0 24px 22px;
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:0 var(--radius) var(--radius) var(--radius);
+  }
+  .page{display:none;height:100%;flex-direction:column;padding:22px}
+  .page.active{display:flex}
+  .page-head{margin-bottom:16px}
+  .page-head h2{font-size:18px;font-weight:650;letter-spacing:.2px}
+  .page-head p{color:var(--muted);font-size:12.5px;margin-top:3px}
+
+  /* ---------- 拖放区 ---------- */
+  .drop{
+    border:1.5px dashed var(--line);border-radius:var(--radius);
+    background:var(--panel-2);transition:.18s;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;cursor:pointer;padding:26px;gap:10px;
+  }
+  .drop:hover{border-color:#3a414f;background:#23272f}
+  .drop.over{
+    border-color:var(--amber);background:var(--amber-soft);
+    box-shadow:inset 0 0 0 1px var(--amber-line);transform:scale(.995);
+  }
+  .drop .ring{
+    width:48px;height:48px;border-radius:50%;display:grid;place-items:center;
+    background:#1a1d25;border:1px solid var(--line);color:var(--amber);
+  }
+  .drop .ring svg{width:22px;height:22px}
+  .drop strong{font-size:14px;font-weight:600}
+  .drop span{font-size:12px;color:var(--faint)}
+  .drop .browse{color:var(--amber);text-decoration:underline;cursor:pointer}
+  .drop.hidden{display:none}
+
+  /* ---------- 已有文件后的紧凑操作栏 ---------- */
+  .merge-actions{
+    display:none;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 12px;border:1px solid var(--line);border-radius:12px;
+    background:var(--panel-2);margin-bottom:10px;
+  }
+  .merge-actions.show{display:flex}
+  .merge-actions .hint{color:var(--faint);font-size:12px}
+  .merge-actions .actions{display:flex;gap:8px;flex:none}
+  .btn.secondary{background:#1b1e26;color:var(--text);border:1px solid var(--line)}
+  .btn.secondary:hover{background:#232733}
+
+  /* ---------- 文件列表 ---------- */
+  .list{flex:1;overflow-y:auto;margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .list:empty{display:none}
+  .row{
+    display:flex;align-items:center;gap:12px;
+    background:var(--panel-2);border:1px solid var(--line);
+    border-radius:11px;padding:10px 12px;transition:.13s;
+  }
+  .row.drag-source{opacity:.4}
+  .row.drag-over{border-color:var(--amber-line);background:#262a34}
+  .row .grip{
+    cursor:grab;color:var(--faint);display:flex;flex:none;touch-action:none;
+  }
+  .row .grip:active{cursor:grabbing}
+  .row .grip svg{width:16px;height:16px}
+  .order-no{
+    font-family:var(--mono);font-size:11px;color:var(--amber);
+    width:22px;text-align:center;flex:none;
+  }
+  .merge-seq{
+    width:22px;height:22px;border-radius:6px;flex:none;display:grid;place-items:center;
+    border:1px solid var(--line);background:#181b22;color:var(--faint);
+    font-family:var(--mono);font-size:11px;cursor:pointer;user-select:none;transition:.13s;
+  }
+  .merge-seq:hover{border-color:var(--amber-line);color:var(--amber);background:#211d17}
+  .merge-seq.filled{border-color:var(--amber-line);background:var(--amber-soft);color:var(--amber);font-weight:700}
+  .icon-btn{
+    width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+    border:1px solid var(--line);background:#1b1e26;color:var(--muted);cursor:pointer;
+  }
+  .icon-btn:hover{background:#232733;color:var(--amber);border-color:var(--amber-line)}
+  .icon-btn svg{width:16px;height:16px}
+  .fic{
+    width:34px;height:34px;border-radius:8px;flex:none;display:grid;place-items:center;
+    background:#2a1f12;color:var(--amber);
+  }
+  .fic svg{width:18px;height:18px}
+  .meta{flex:1;min-width:0}
+  .meta .nm{font-size:13px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta .sub{font-size:11px;color:var(--faint);font-family:var(--mono);margin-top:2px;display:flex;gap:10px}
+  .badge{font-size:10px;padding:1px 6px;border-radius:5px;font-family:var(--sans)}
+  .badge.lock{background:#f2697b22;color:var(--red)}
+  .badge.enc{background:#6fa8ff22;color:var(--blue)}
+  .badge.dec{background:#5bd6a022;color:var(--green)}
+  .badge.err{background:#f2697b22;color:var(--red)}
+  .rm{
+    flex:none;cursor:pointer;color:var(--faint);width:28px;height:28px;
+    border-radius:7px;display:grid;place-items:center;transition:.13s;
+  }
+  .rm:hover{color:var(--red);background:#f2697b1a}
+  .rm svg{width:15px;height:15px}
+
+  /* ---------- 拆分范围条目 ---------- */
+  .ranges{display:flex;flex-direction:column;gap:8px;margin-top:14px;overflow-y:auto;flex:1}
+  .rng{
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel-2);border:1px solid var(--line);
+    border-radius:11px;padding:10px 12px;
+  }
+  .rng input{
+    background:#15171d;border:1px solid var(--line);border-radius:8px;
+    color:var(--ink);padding:8px 11px;font-size:13px;font-family:var(--sans);outline:none;
+    transition:.13s;
+  }
+  .rng input:focus{border-color:var(--amber-line);background:#181b22}
+  .rng input::placeholder{color:var(--faint)}
+  .rng .r-range{width:150px;font-family:var(--mono)}
+  .rng .r-label{flex:1;min-width:0}
+  .rng .tag{font-size:10px;color:var(--faint);font-family:var(--mono)}
+  .add-rng{
+    align-self:flex-start;margin-top:4px;display:flex;align-items:center;gap:7px;
+    background:none;border:1px dashed var(--line);color:var(--muted);
+    padding:8px 14px;border-radius:9px;cursor:pointer;font-size:12.5px;transition:.13s;
+  }
+  .add-rng:hover{border-color:var(--amber-line);color:var(--ink)}
+  .add-rng svg{width:14px;height:14px}
+
+  /* ---------- 拆分左右布局 ---------- */
+  .split-actions{
+    display:none;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 10px;border:1px solid var(--line);border-radius:12px;
+    background:var(--panel-2);margin-bottom:12px;
+  }
+  .split-actions.show{display:flex}
+  .split-actions .hint{color:var(--faint);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .split-actions .btn{padding:9px 14px;border-radius:9px;flex:none}
+  .split-work{display:none;flex:1;min-height:0;gap:14px;margin-top:0}
+  .split-work.show{display:flex}
+  .pdf-pane{
+    flex:1.08;min-width:0;display:flex;flex-direction:column;
+    border:1px solid var(--line);border-radius:12px;background:#101218;overflow:hidden;
+  }
+  .pdf-pane .pane-title{
+    padding:9px 12px;border-bottom:1px solid var(--line-soft);
+    color:var(--muted);font-size:12px;display:flex;align-items:center;gap:8px;
+  }
+  .pdf-viewer-wrap{position:relative;flex:1;min-height:0;background:#0d0f13;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px}
+  .pdf-page-img{max-width:100%;max-height:100%;object-fit:contain;display:block;box-shadow:0 10px 28px #0008;background:white}
+  .pdf-page-loading{position:absolute;left:18px;bottom:14px;color:var(--ink);font-size:12px;background:#0d0f13dd;border:1px solid var(--line);border-radius:8px;padding:6px 11px;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pdf-page-badge{
+    position:absolute;top:14px;right:14px;z-index:3;pointer-events:none;
+    min-width:62px;padding:10px 16px;border-radius:999px;
+    background:rgba(91,214,160,.34);color:#fff;font-weight:800;font-size:28px;line-height:1;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px #0006;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  .pdf-nav{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .pdf-nav-btn{
+    width:28px;height:28px;border-radius:8px;border:1px solid var(--line);
+    background:#171a22;color:var(--muted);display:grid;place-items:center;cursor:pointer;transition:.13s;
+  }
+  .pdf-nav-btn:hover{border-color:var(--amber-line);color:var(--ink);background:#202430}
+  .pdf-nav-btn:disabled{opacity:.35;cursor:not-allowed}
+  .pdf-nav-btn svg{width:15px;height:15px}
+  .pdf-nav-text{font-size:11px;color:var(--faint);font-family:var(--mono);min-width:72px;text-align:center}
+  .split-side{
+    flex:.92;min-width:360px;display:flex;flex-direction:column;min-height:0;
+    border:1px solid var(--line);border-radius:12px;background:#191c24;padding:12px;
+  }
+  .split-table-head,.rng{display:grid;grid-template-columns:96px minmax(120px,1fr) 30px;gap:10px;align-items:center}
+  .split-table-head{padding:0 12px 7px;color:var(--faint);font-family:var(--mono);font-size:10px}
+  .split-side .ranges{margin-top:0}
+  .rng .tag{display:none}
+  .rng .r-range{width:100%;font-family:var(--mono)}
+  .rng .r-label{width:100%;min-width:0}
+  .rng.blank .rm{visibility:hidden}
+  .split-side .footer{margin-top:12px}
+
+  /* ---------- 底部动作条 ---------- */
+  .footer{
+    display:flex;align-items:center;gap:14px;margin-top:16px;
+    padding-top:16px;border-top:1px solid var(--line-soft);
+  }
+  .opts{flex:1;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .check{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;color:var(--muted);font-size:12.5px}
+  .check input{display:none}
+  .check .box{
+    width:18px;height:18px;border-radius:6px;border:1.5px solid var(--line);
+    background:#15171d;display:grid;place-items:center;transition:.13s;flex:none;
+  }
+  .check .box svg{width:12px;height:12px;color:#1a1205;opacity:0;transform:scale(.5);transition:.13s}
+  .check input:checked + .box{background:var(--amber);border-color:var(--amber)}
+  .check input:checked + .box svg{opacity:1;transform:scale(1)}
+  .check:hover{color:var(--ink)}
+
+  .field{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px}
+  .field input{
+    background:#15171d;border:1px solid var(--line);border-radius:8px;
+    color:var(--ink);padding:7px 11px;font-size:12.5px;outline:none;width:160px;
+  }
+  .field input:focus{border-color:var(--amber-line)}
+
+  .btn{
+    display:flex;align-items:center;gap:9px;border:none;cursor:pointer;
+    padding:11px 22px;border-radius:10px;font-size:13.5px;font-weight:650;
+    font-family:var(--sans);transition:.15s;white-space:nowrap;
+    background:linear-gradient(145deg,var(--amber),#E2842F);color:#1a1205;
+    box-shadow:0 4px 16px #f2a3412e;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 7px 20px #f2a34140}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;filter:saturate(.4)}
+  .btn svg{width:17px;height:17px}
+  .btn .spin{animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- 结果提示 ---------- */
+  .results{margin-top:14px;display:flex;flex-direction:column;gap:6px;max-height:30%;overflow-y:auto}
+  .results:empty{display:none}
+  .res{
+    display:flex;align-items:center;gap:10px;font-size:12.5px;
+    padding:9px 12px;border-radius:9px;border:1px solid var(--line);
+    animation:slide .25s ease;
+  }
+  @keyframes slide{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .res.ok{background:#5bd6a012;border-color:#5bd6a033}
+  .res.ng{background:#f2697b12;border-color:#f2697b33}
+  .res .ri{width:16px;height:16px;flex:none}
+  .res.ok .ri{color:var(--green)} .res.ng .ri{color:var(--red)}
+  .res .rn{font-weight:550;flex:none;max-width:42%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .res .arrow{color:var(--faint);flex:none}
+  .res .ro{color:var(--green);font-family:var(--mono);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .res .re{color:var(--red);font-size:12px;flex:1;min-width:0}
+  .res .copy-err{
+    flex:none;font-size:11px;color:var(--faint);border:1px solid var(--line);
+    border-radius:6px;padding:2px 8px;font-family:var(--sans);transition:.13s;
+  }
+  .res.ng:hover .copy-err{color:var(--ink);border-color:var(--amber-line)}
+
+  .empty-hint{color:var(--faint);font-size:12px;text-align:center;padding:20px;font-style:italic}
+
+  /* toast */
+  #toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#0d0f13;border:1px solid var(--line);color:var(--ink);
+    padding:11px 20px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;
+    transition:.25s;box-shadow:0 10px 30px #0008;z-index:99;display:flex;gap:9px;align-items:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast svg{width:16px;height:16px;color:var(--amber)}
+
+  /* 日志弹窗 */
+  #logModal{
+    position:fixed;inset:0;background:#000a;backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;z-index:120;padding:34px;
+  }
+  #logModal.show{display:flex}
+  .log-box{
+    width:100%;max-width:860px;height:100%;max-height:78vh;display:flex;flex-direction:column;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 24px 70px #000a;overflow:hidden;
+  }
+  .log-top{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line-soft)}
+  .log-top h3{font-size:15px;font-weight:650;flex:1}
+  .log-top .lp{font-size:11px;color:var(--faint);font-family:var(--mono);
+    max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl}
+  .log-btn{
+    width:38px;height:38px;display:grid;place-items:center;cursor:pointer;font-size:12px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    padding:0;border-radius:8px;transition:.13s;
+  }
+  .log-btn:hover{border-color:var(--amber-line);color:var(--ink)}
+  .log-btn.primary{background:var(--amber);color:#1a1205;border-color:var(--amber);font-weight:600}
+  .log-btn svg{width:17px;height:17px}
+  .log-body{
+    flex:1;overflow:auto;margin:0;padding:16px 18px;
+    font-family:var(--mono);font-size:12px;line-height:1.6;color:#c8cdd8;
+    white-space:pre-wrap;word-break:break-word;background:#101218;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">PDF</div>
+    <div class="brand">
+      <h1>LANCER1911 PDF Workshop</h1>
+      <p id="dlPath">~/Downloads</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="dl-chip" onclick="showLog()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>
+      日志
+    </div>
+    <div class="dl-chip" onclick="openDownloads()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v13h18V7M3 7l2-3h14l2 3M3 7h18M8 12h8"/></svg>
+      打开下载文件夹
+    </div>
+  </header>
+
+  <nav>
+    <div class="tab active" data-tab="unlock" onclick="switchTab('unlock')">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 11V7a5 5 0 0 1 9.9-1M5 11h14v10H5z"/></svg>
+      解除限制 <span class="num">01</span>
+    </div>
+    <div class="tab" data-tab="merge" onclick="switchTab('merge')">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4H4v6m0 4v6h6m4-16h6v6m0 4v6h-6M9 15l6-6"/></svg>
+      合并 <span class="num">02</span>
+    </div>
+    <div class="tab" data-tab="split" onclick="switchTab('split')">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 7l-2 5 2 5M19 7l2 5-2 5"/></svg>
+      拆分 <span class="num">03</span>
+    </div>
+  </nav>
+
+  <main>
+    <!-- ============ 解除限制 ============ -->
+    <section class="page active" id="page-unlock">
+      <div class="page-head">
+        <h2>解除 PDF 限制</h2>
+        <p>移除复制、打印、编辑等权限限制。拖入任意数量的 PDF，处理后保存为 <b>原名-decrypted.pdf</b>。</p>
+      </div>
+      <div class="drop" id="drop-unlock" onclick="browse('unlock')">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 12l-4-4m4 4l4-4M4 20h16"/></svg></div>
+        <strong>将 PDF 拖到此处</strong>
+        <span>或 <a class="browse">点击选择文件</a> · 支持多个文件</span>
+      </div>
+      <div class="merge-actions" id="unlock-actions">
+        <span class="hint">可继续拖入 PDF 添加；处理后保存为原名-decrypted.pdf。</span>
+        <div class="actions">
+          <button class="btn secondary" onclick="reselectUnlock()">重新选择</button>
+          <button class="btn secondary" onclick="browse('unlock')">添加文件</button>
+        </div>
+      </div>
+      <div class="list" id="list-unlock"></div>
+      <div class="footer">
+        <div class="opts">
+          <div class="field">
+            <span>打开密码</span>
+            <input type="password" id="unlock-pwd" placeholder="如有则填写（可选）">
+          </div>
+        </div>
+        <button class="btn" id="btn-unlock" disabled onclick="doUnlock()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 11V8a5 5 0 0 1 9.9-1M5 11h14v10H5z"/></svg>
+          解除限制
+        </button>
+      </div>
+      <div class="results" id="res-unlock"></div>
+    </section>
+
+    <!-- ============ 合并 ============ -->
+    <section class="page" id="page-merge">
+      <div class="page-head">
+        <h2>合并 PDF</h2>
+        <p>拖入多个 PDF 并拖动 <svg style="width:13px;height:13px;vertical-align:-2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg> 调整顺序。结果保存为 <b>首个文件名-merged.pdf</b>。</p>
+      </div>
+      <div class="drop" id="drop-merge" onclick="browse('merge')">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4H4v6m0 4v6h6m4-16h6v6m0 4v6h-6M9 15l6-6"/></svg></div>
+        <strong>将多个 PDF 拖到此处</strong>
+        <span>或 <a class="browse">点击选择文件</a> · 按列表顺序合并</span>
+      </div>
+      <div class="merge-actions" id="merge-actions">
+        <span class="hint">可继续拖入 PDF 添加；拖动左侧圆点调整合并顺序。</span>
+        <div class="actions">
+          <button class="icon-btn" title="清空编序" onclick="clearMergeSeq()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6M14 11v6"/></svg></button>
+          <button class="btn secondary" onclick="reselectMerge()">重新选择</button>
+          <button class="btn secondary" onclick="browse('merge')">添加文件</button>
+        </div>
+      </div>
+      <div class="list" id="list-merge"></div>
+      <div class="footer">
+        <div class="opts">
+          <span style="color:var(--faint);font-size:12px" id="merge-count">尚未添加文件</span>
+          <label class="check" title="在合并后的 PDF 每页底端居中添加红色页码">
+            <input type="checkbox" id="merge-add-page-numbers">
+            <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 12l5 5L20 7"/></svg></span>
+            添加页码
+          </label>
+        </div>
+        <button class="btn" id="btn-merge" disabled onclick="doMerge()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 15l6-6M8 4H4v6m12 4v6h-6"/></svg>
+          合并
+        </button>
+      </div>
+      <div class="results" id="res-merge"></div>
+    </section>
+
+    <!-- ============ 拆分 ============ -->
+    <section class="page" id="page-split">
+      <div class="page-head">
+        <h2>拆分 PDF</h2>
+        <p>只能选择一个 PDF。左侧预览原 PDF，右侧填写任意页码范围；文件名为空时自动使用“原文件名-页码范围.pdf”。</p>
+      </div>
+      <div class="drop" id="drop-split" onclick="browse('split')">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 7l-2 5 2 5M19 7l2 5-2 5"/></svg></div>
+        <strong>将一个 PDF 拖到此处</strong>
+        <span>或 <a class="browse">点击选择文件</a></span>
+      </div>
+      <div class="list" id="list-split" style="display:none"></div>
+      <div class="split-work" id="split-work">
+        <div class="pdf-pane">
+          <div class="pane-title">
+            <span>PDF 预览</span>
+            <div class="pdf-nav">
+              <button class="pdf-nav-btn" id="split-prev-page" type="button" title="上一页" onclick="stepSplitPage(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <span class="pdf-nav-text" id="split-pages-hint"></span>
+              <button class="pdf-nav-btn" id="split-next-page" type="button" title="下一页" onclick="stepSplitPage(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+            </div>
+          </div>
+          <div class="pdf-viewer-wrap" id="pdf-viewer-wrap">
+            <div class="pdf-page-badge" id="pdf-page-badge">1</div>
+            <img class="pdf-page-img" id="pdf-page-img" alt="PDF 页面预览">
+            <div class="pdf-page-loading" id="pdf-page-loading" style="display:none">正在渲染预览…</div>
+          </div>
+        </div>
+        <div class="split-side">
+          <div class="split-actions" id="split-actions">
+            <span class="hint" id="split-file-hint">已选择 PDF</span>
+            <button class="btn secondary" onclick="reselectSplit()">重新选择</button>
+          </div>
+          <div class="split-table-head"><span>页码范围</span><span>文件名</span><span></span></div>
+          <div class="ranges" id="ranges-split"></div>
+          <div class="footer">
+            <div class="opts"></div>
+            <button class="btn" id="btn-split" disabled onclick="doSplit()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v18M5 7l-2 5 2 5M19 7l2 5-2 5"/></svg>
+              拆分
+            </button>
+          </div>
+          <div class="results" id="res-split"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<div id="logModal" onclick="if(event.target===this)hideLog()">
+  <div class="log-box">
+    <div class="log-top">
+      <h3>运行日志</h3>
+      <span class="lp" id="logPath"></span>
+      <div class="log-btn" title="清空日志" onclick="clearLog()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/><path d="M10 11v6M14 11v6"/></svg></div>
+      <div class="log-btn" title="刷新日志" onclick="refreshLog()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0 1 14.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0 0 20.5 15"/></svg></div>
+      <div class="log-btn" title="打开日志文件夹" onclick="openLogs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v13h18V7M3 7l2-3h14l2 3M3 7h18"/></svg></div>
+      <div class="log-btn primary" title="复制全部日志" onclick="copyLog()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 9h11v11H9zM5 15H4V4h11v1"/></svg></div>
+      <div class="log-btn" title="关闭" onclick="hideLog()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+    </div>
+    <pre class="log-body" id="logBody">加载中…</pre>
+  </div>
+</div>
+
+<script>
+// pywebview.api 不是页面一加载就一定存在；必须等 pywebviewready 后再取。
+// 旧版这里用 const api = ...，若加载时尚未注入，会永久变成 null，导致：
+// TypeError: null is not an object (evaluating 'api.read_log')，以及点击选择文件无反应。
+// v0.1d：拖拽文件在 macOS 可能没有真实路径；改为必要时读取内容并保存到临时目录。
+// v0.1e：合并区已有文件后隐藏大拖放框，改为紧凑操作栏，扩大排序列表空间。
+// v0.1g：合并列表增加点击编序；未编序按列表顺序，全部编序按数字顺序，部分编序提示清空或补全。
+// v0.1h：解除限制区已有文件后也隐藏大拖放框；状态标签统一为“加密/已解密”。
+// v0.1i：拆分页改为单文件、选择后隐藏拖放框、左右预览/表格布局，表格自动保持一个空行，文件名用于输出命名。
+// v0.1j：拆分预览增加当前页码显示与上一页/下一页；页码范围框仅允许输入数字和连字符。
+// v0.1k：拆分预览改用 PyMuPDF 渲染单页图片，完整显示页面，并由程序控制页码。
+// v0.1s：合并页码改为最终文件上直接 insert_text 写入；窗口标题改为 LANCER1911 PDF Workshop。
+// v0.1m：补强 PyMuPDF/pymupdf 依赖兼容；拆分已选文件条移动到右侧面板顶部，增加左侧预览高度。
+// v0.1n：拆分页移除“覆盖原标签”；合并时对无书签源 PDF 自动添加文件名书签。
+let api = null;
+let apiReadyResolve;
+const apiReady = new Promise(resolve => { apiReadyResolve = resolve; });
+let env = {downloads:"~/Downloads", platform:"", log_file:""};
+
+function bindApi(){
+  if(!api && window.pywebview && window.pywebview.api){
+    api = window.pywebview.api;
+    if(apiReadyResolve) apiReadyResolve(api);
+  }
+  return api;
+}
+
+async function getApi(){
+  const a = bindApi();
+  if(a) return a;
+  return await apiReady;
+}
+
+
+// 捕获前端所有未处理错误，转发到 Python 写入日志文件
+function reportJsError(msg){
+  try{ const a=bindApi(); if(a && a.log_js_error) a.log_js_error(msg); }catch(_){}
+}
+window.onerror = function(message, source, line, col, error){
+  reportJsError(`${message}  @ ${source}:${line}:${col}\n${(error&&error.stack)||''}`);
+};
+window.addEventListener('unhandledrejection', e=>{
+  const r=e.reason; reportJsError('未处理的 Promise 拒绝：'+((r&&r.stack)||r));
+});
+
+// 状态：每个功能各自维护文件列表
+const state = { unlock:[], merge:[], split:[] };
+let rangeSeq = 0;
+const splitPreview = { filePath:'', page:1, total:0, loading:false, timer:null, renderToken:0, wheelTimer:null, wheelAccum:0, lastError:'' };
+
+window.addEventListener('pywebviewready', async () => {
+  try {
+    const a = bindApi();
+    env = await a.get_env();
+    document.getElementById('dlPath').textContent = env.downloads;
+  } catch(e) {}
+});
+
+
+/* ---------- 标签切换 ---------- */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+name));
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.5-6.5l-3 3m-6 6l-3 3m12 0l-3-3m-6-6l-3-3"/></svg>'+msg;
+  t.classList.add('show'); clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ---------- 日志查看 ---------- */
+async function showLog(){
+  document.getElementById('logModal').classList.add('show');
+  await refreshLog();
+}
+function hideLog(){ document.getElementById('logModal').classList.remove('show'); }
+async function refreshLog(){
+  const body=document.getElementById('logBody');
+  body.textContent='加载中…';
+  try{
+    const a = await getApi();
+    const r=await a.read_log();
+    document.getElementById('logPath').textContent = r.path||'';
+    body.textContent = r.ok ? (r.text||'(空)') : ('读取日志失败：'+r.error);
+    body.scrollTop = body.scrollHeight;   // 滚到最新
+  }catch(e){ body.textContent='读取日志失败：'+e; }
+}
+async function clearLog(){
+  const body=document.getElementById('logBody');
+  try{
+    const a = await getApi();
+    const r = await a.clear_log();
+    if(r.ok){
+      document.getElementById('logPath').textContent = r.path||'';
+      body.textContent = '(日志已清空)';
+      toast('日志已清空');
+    }else{
+      toast('清空日志失败：'+r.error);
+    }
+  }catch(e){ toast('清空日志失败：'+e); }
+}
+async function copyLog(){
+  const text=document.getElementById('logBody').textContent;
+  await copyText(text); toast('日志已复制到剪贴板');
+}
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(_){
+    const ta=document.createElement('textarea'); ta.value=text;
+    ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+    ta.select(); try{document.execCommand('copy');}catch(__){} ta.remove();
+  }
+}
+
+/* ---------- 拖放绑定 ---------- */
+function setupDrop(zone){
+  const el=document.getElementById('drop-'+zone);
+  ['dragenter','dragover'].forEach(ev=>el.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();el.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>el.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();if(ev==='dragleave'&&el.contains(e.relatedTarget))return;el.classList.remove('over');}));
+  el.addEventListener('drop',async e=>handlePdfDrop(e, zone, el));
+}
+
+async function handlePdfDrop(e, zone, visualEl){
+  e.preventDefault();e.stopPropagation();
+  if(visualEl) visualEl.classList.remove('over');
+  const paths=[];
+  if(e.dataTransfer.files&&e.dataTransfer.files.length){
+    try{
+      const a = await getApi();
+      for(const f of e.dataTransfer.files){
+        if(!/\.pdf$/i.test(f.name||'')) continue;
+        // 优先使用 pywebview 提供的真实路径；macOS 某些版本拿不到路径时，
+        // 读取文件内容并交给 Python 保存到临时目录。
+        if(f.path){
+          paths.push(f.path);
+        }else{
+          const dataUrl = await readFileAsDataURL(f);
+          const saved = await a.save_dropped_file(f.name, dataUrl);
+          if(saved) paths.push(saved);
+        }
+      }
+    }catch(err){
+      toast('拖入文件读取失败：'+err);
+      return;
+    }
+  }
+  if(paths.length) await addFiles(zone, paths);
+  else toast('未识别到 PDF 文件，请尝试点击选择');
+}
+
+function setupSelectedPageDrop(zone){
+  const page=document.getElementById('page-'+zone);
+  page.addEventListener('dragover',e=>{
+    if(state[zone].length>0){e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='copy';}
+  });
+  page.addEventListener('drop',e=>{
+    if(state[zone].length>0) handlePdfDrop(e, zone, null);
+  });
+}
+
+function readFileAsDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function browse(zone, reset=false){
+  try{
+    const a = await getApi();
+    const multi = zone!=='split';
+    const picked = await a.pick_files(multi);
+    if(picked&&picked.length){
+      if(reset) state[zone]=[];
+      await addFiles(zone, picked);
+    }
+  }catch(e){ toast('选择文件失败：'+e); }
+}
+
+function sanitizeRangeValue(value){
+  let v = String(value||'').replace(/[^\d-]/g,'');
+  v = v.replace(/-+/g,'-');
+  return v;
+}
+
+function extractFirstPage(value){
+  const m = String(value||'').match(/\d+/);
+  return m ? parseInt(m[0],10) : null;
+}
+
+function updateSplitPageUi(){
+  const total = splitPreview.total || 0;
+  const page = Math.min(Math.max(splitPreview.page || 1, 1), total || 1);
+  splitPreview.page = page;
+  const badge = document.getElementById('pdf-page-badge');
+  if(badge) badge.textContent = String(page);
+  const hint = document.getElementById('split-pages-hint');
+  if(hint) hint.textContent = total ? `第 ${page} / ${total} 页` : '';
+  const prev = document.getElementById('split-prev-page');
+  const next = document.getElementById('split-next-page');
+  if(prev) prev.disabled = !total || page<=1;
+  if(next) next.disabled = !total || page>=total;
+}
+
+function scheduleSplitPreviewRender(force=false, delay=80){
+  if(splitPreview.timer) clearTimeout(splitPreview.timer);
+  splitPreview.timer = setTimeout(()=>{
+    splitPreview.timer = null;
+    loadSplitPreview(force);
+  }, delay);
+}
+
+async function setSplitPreviewPage(page, force=false){
+  const total = splitPreview.total || (state.split[0] && state.split[0].pages) || 0;
+  if(!total) return;
+  page = Math.max(1, Math.min(total, parseInt(page||1,10)||1));
+  const img = document.getElementById('pdf-page-img');
+  const samePageAlreadyLoaded = !force && splitPreview.page===page && img && img.getAttribute('src') && !splitPreview.lastError;
+  splitPreview.page = page;
+  updateSplitPageUi();
+  if(samePageAlreadyLoaded) return;
+  scheduleSplitPreviewRender(force, force ? 0 : 90);
+}
+
+function stepSplitPage(delta){
+  if(!splitPreview.total) return;
+  setSplitPreviewPage((splitPreview.page||1)+delta);
+}
+
+function reselectUnlock(){
+  state.unlock = [];
+  render('unlock');
+  document.getElementById('res-unlock').innerHTML = '';
+  toast('已清空解除限制列表，可重新拖入或选择 PDF');
+}
+
+function reselectMerge(){
+  state.merge = [];
+  render('merge');
+  document.getElementById('res-merge').innerHTML = '';
+  toast('已清空合并列表，可重新拖入或选择 PDF');
+}
+
+function reselectSplit(){
+  state.split = [];
+  clearSplitRows();
+  clearSplitPreview();
+  render('split');
+  document.getElementById('res-split').innerHTML = '';
+  toast('已清空拆分文件，可重新拖入或选择 PDF');
+}
+
+function nextMergeSeq(){
+  const used = new Set(state.merge.map(f=>f.seq).filter(v=>Number.isInteger(v)));
+  for(let i=1;i<=state.merge.length;i++) if(!used.has(i)) return i;
+  return null;
+}
+
+function toggleMergeSeq(path){
+  const f = state.merge.find(x=>x.path===path);
+  if(!f) return;
+  if(Number.isInteger(f.seq)) f.seq = null;
+  else f.seq = nextMergeSeq();
+  render('merge');
+}
+
+function clearMergeSeq(){
+  state.merge.forEach(f=>f.seq=null);
+  render('merge');
+  document.getElementById('res-merge').innerHTML = '';
+  toast('已清空合并编序');
+}
+
+function getMergePathsOrWarn(){
+  const files = state.merge;
+  const selected = files.filter(f=>Number.isInteger(f.seq)).length;
+  if(selected===0) return files.map(f=>f.path);
+  if(selected!==files.length){
+    const msg = `已编序 ${selected}/${files.length} 个文件。请为全部文件编序，或点击垃圾桶图标清空编序后按列表顺序合并。`;
+    toast(msg);
+    const res=document.getElementById('res-merge');
+    res.innerHTML='';
+    res.appendChild(resRow(false,'合并顺序未完成','',msg));
+    return null;
+  }
+  return [...files].sort((a,b)=>a.seq-b.seq).map(f=>f.path);
+}
+
+async function openDownloads(){
+  try{ const a=await getApi(); await a.open_downloads(); }
+  catch(e){ toast('打开下载文件夹失败：'+e); }
+}
+
+async function openLogs(){
+  try{ const a=await getApi(); await a.open_logs(); }
+  catch(e){ toast('打开日志文件夹失败：'+e); }
+}
+
+/* ---------- 添加文件 ---------- */
+async function addFiles(zone, paths){
+  if(!paths.length) return;
+  if(zone==='split'){ state.split=[]; paths=[paths[0]]; }   // 拆分仅一个
+  const existing=new Set(state[zone].map(f=>f.path));
+  const fresh=paths.filter(p=>!existing.has(p));
+  if(!fresh.length){ if(zone!=='split'){toast('文件已在列表中');return;} }
+  let info=[];
+  try{ const a=await getApi(); info = await a.inspect(zone==='split'?paths:fresh); }catch(e){ toast('读取失败：'+e); return; }
+  if(zone==='split') { clearSplitRows(); clearSplitPreview(); state.split = info; splitPreview.page = 1; splitPreview.total = (info[0]&&info[0].pages)||0; document.getElementById('res-split').innerHTML=''; }
+  else {
+    if(zone==='merge') info.forEach(f=>f.seq=null);
+    state[zone].push(...info);
+  }
+  render(zone);
+}
+
+function removeFile(zone, path){
+  state[zone]=state[zone].filter(f=>f.path!==path);
+  if(zone==='split'){ clearSplitRows(); clearSplitPreview(); }
+  render(zone);
+}
+
+/* ---------- 渲染列表 ---------- */
+function fileIcon(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';}
+
+function fileBadges(f){
+  let b='';
+  if(f.error) b+='<span class="badge err">读取失败</span>';
+  else{
+    if(f.locked) b+='<span class="badge lock">需密码</span>';
+    else if(f.encrypted) b+='<span class="badge enc">加密</span>';
+    else b+='<span class="badge dec">已解密</span>';
+  }
+  return b;
+}
+
+function render(zone){
+  const list=document.getElementById('list-'+zone);
+  const files=state[zone];
+  list.innerHTML='';
+  files.forEach((f,i)=>{
+    const row=document.createElement('div');
+    row.className='row'; row.dataset.path=f.path; row.dataset.idx=i;
+    const grip = zone==='merge'
+      ? `<div class="grip" draggable="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></div>`
+      : '';
+    const orderNo = zone==='merge'?`<span class="order-no">${i+1}</span>`:'';
+    const seq = zone==='merge'?`<div class="merge-seq ${Number.isInteger(f.seq)?'filled':''}" title="点击设置/取消合并编序">${Number.isInteger(f.seq)?f.seq:''}</div>`:'';
+    const pages = f.pages!=null?`${f.pages} 页`:'—';
+    row.innerHTML = `${grip}${orderNo}
+      <div class="fic">${fileIcon()}</div>
+      <div class="meta">
+        <div class="nm">${escapeHtml(f.name)}</div>
+        <div class="sub"><span>${pages}</span><span>${f.size}</span>${fileBadges(f)}</div>
+      </div>
+      ${seq}
+      <div class="rm" title="移除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div>`;
+    const seqEl=row.querySelector('.merge-seq');
+    if(seqEl) seqEl.onclick=()=>toggleMergeSeq(f.path);
+    row.querySelector('.rm').onclick=()=>removeFile(zone,f.path);
+    if(zone==='merge') wireDrag(row, zone);
+    list.appendChild(row);
+  });
+  postRender(zone);
+}
+
+function postRender(zone){
+  if(zone==='unlock'){
+    const n=state.unlock.length;
+    document.getElementById('btn-unlock').disabled = n===0;
+    document.getElementById('drop-unlock').classList.toggle('hidden', n>0);
+    document.getElementById('unlock-actions').classList.toggle('show', n>0);
+  }
+  if(zone==='merge'){
+    const n=state.merge.length;
+    document.getElementById('btn-merge').disabled = n<2;
+    const selected = state.merge.filter(f=>Number.isInteger(f.seq)).length;
+    document.getElementById('merge-count').textContent = n===0?'尚未添加文件': selected===0?`${n} 个文件 · 未编序时按列表顺序合并`:`${n} 个文件 · 已编序 ${selected}/${n}`;
+    document.getElementById('drop-merge').classList.toggle('hidden', n>0);
+    document.getElementById('merge-actions').classList.toggle('show', n>0);
+  }
+  if(zone==='split'){
+    const hasFile = state.split.length>0;
+    const ok = hasFile && !state.split[0].error;
+    document.getElementById('drop-split').classList.toggle('hidden', hasFile);
+    document.getElementById('split-actions').classList.toggle('show', hasFile);
+    document.getElementById('split-work').classList.toggle('show', ok);
+    if(hasFile){
+      const f=state.split[0];
+      document.getElementById('split-file-hint').textContent = f.error ? `读取失败：${f.name}` : `已选择：${f.name}`;
+      splitPreview.total = f.pages || 0;
+      if(!splitPreview.page) splitPreview.page = 1;
+      updateSplitPageUi();
+    }
+    if(ok && document.querySelectorAll('#ranges-split .rng').length===0){
+      const pages = state.split[0].pages || 1;
+      addRange(pages>=2?'1-2':'1-1', '', false);
+      addRange('', '', true);
+      normalizeSplitRows();
+      loadSplitPreview();
+    }
+    if(!hasFile){ clearSplitPreview(); }
+    refreshSplitBtn();
+  }
+}
+
+/* ---------- 合并：拖动排序 ---------- */
+let dragIdx=null;
+function wireDrag(row, zone){
+  const grip=row.querySelector('.grip');
+  grip.addEventListener('dragstart',e=>{
+    dragIdx=+row.dataset.idx; row.classList.add('drag-source');
+    e.dataTransfer.effectAllowed='move';
+    try{e.dataTransfer.setData('text/plain',dragIdx);}catch(_){}
+  });
+  grip.addEventListener('dragend',()=>{
+    row.classList.remove('drag-source');
+    document.querySelectorAll('#list-merge .row').forEach(r=>r.classList.remove('drag-over'));
+  });
+  row.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';
+    document.querySelectorAll('#list-merge .row').forEach(r=>r.classList.remove('drag-over'));
+    row.classList.add('drag-over');});
+  row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+  row.addEventListener('drop',e=>{
+    e.preventDefault();
+    const to=+row.dataset.idx;
+    if(dragIdx===null||dragIdx===to) return;
+    const arr=state.merge; const [m]=arr.splice(dragIdx,1); arr.splice(to,0,m);
+    dragIdx=null; render('merge');
+  });
+}
+
+/* ---------- 拆分：范围条目 ---------- */
+function isRowFilled(row){
+  return !!(row.querySelector('.r-range').value.trim() || row.querySelector('.r-label').value.trim());
+}
+function addRange(range='', filename='', blank=false){
+  const wrap=document.getElementById('ranges-split');
+  const id='rng-'+(rangeSeq++);
+  const div=document.createElement('div');
+  div.className='rng'+(blank?' blank':''); div.id=id;
+  div.innerHTML=`
+    <input class="r-range" placeholder="1-2" inputmode="numeric" spellcheck="false" value="${escapeAttr(sanitizeRangeValue(range))}">
+    <input class="r-label" placeholder="文件名（可选）" value="${escapeAttr(filename)}">
+    <div class="rm" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div>`;
+  div.querySelector('.rm').onclick=()=>{div.remove();normalizeSplitRows();refreshSplitBtn();};
+  const rangeInp = div.querySelector('.r-range');
+  const labelInp = div.querySelector('.r-label');
+  rangeInp.addEventListener('beforeinput', e=>{
+    if(e.data && /[^\d-]/.test(e.data)) e.preventDefault();
+  });
+  rangeInp.addEventListener('input',()=>{
+    const clean = sanitizeRangeValue(rangeInp.value);
+    if(clean !== rangeInp.value) rangeInp.value = clean;
+    const first = extractFirstPage(clean);
+    if(first) setSplitPreviewPage(first);
+    normalizeSplitRows();
+    refreshSplitBtn();
+  });
+  rangeInp.addEventListener('focus',()=>{
+    const first = extractFirstPage(rangeInp.value);
+    if(first) setSplitPreviewPage(first);
+  });
+  labelInp.addEventListener('input',()=>{ normalizeSplitRows(); refreshSplitBtn(); });
+  wrap.appendChild(div);
+  return div;
+}
+function clearSplitRows(){
+  document.getElementById('ranges-split').innerHTML='';
+}
+function normalizeSplitRows(){
+  const wrap=document.getElementById('ranges-split');
+  let rows=[...wrap.querySelectorAll('.rng')];
+  if(!rows.length){ addRange('', '', true); rows=[...wrap.querySelectorAll('.rng')]; }
+
+  // 最后一行填写任何内容后，自动增加新的空白行。
+  let last=rows[rows.length-1];
+  if(isRowFilled(last)){
+    last.classList.remove('blank');
+    addRange('', '', true);
+    rows=[...wrap.querySelectorAll('.rng')];
+  }
+
+  // 永远只保留一个末尾空行；若倒数第2行被删空，则自动删除该行。
+  for(let i=rows.length-2;i>=0;i--){
+    const r=rows[i];
+    if(!isRowFilled(r)) r.remove();
+  }
+  rows=[...wrap.querySelectorAll('.rng')];
+  rows.forEach((r,i)=>r.classList.toggle('blank', i===rows.length-1 && !isRowFilled(r)));
+}
+function refreshSplitBtn(){
+  const rows=[...document.querySelectorAll('#ranges-split .rng')];
+  const any=rows.some(r=>r.querySelector('.r-range').value.trim());
+  document.getElementById('btn-split').disabled = !(state.split.length && !state.split[0].error && any);
+}
+async function loadSplitPreview(forceReload=false){
+  const img=document.getElementById('pdf-page-img');
+  const loading=document.getElementById('pdf-page-loading');
+  if(!(state.split.length && !state.split[0].error)){
+    if(img) img.removeAttribute('src');
+    if(loading) loading.style.display='none';
+    return;
+  }
+  const token = ++splitPreview.renderToken;
+  const path = state.split[0].path;
+  const currentPage = splitPreview.page || 1;
+  try{
+    splitPreview.total = state.split[0].pages || 0;
+    splitPreview.filePath = path;
+    updateSplitPageUi();
+    if(loading){
+      loading.textContent = img && img.getAttribute('src') ? '正在切换页面…' : '正在渲染预览…';
+      loading.style.display='block';
+    }
+    const a=await getApi();
+    const r = await a.get_pdf_page_image(path, currentPage, 1600);
+    if(token !== splitPreview.renderToken) return;
+    if(!r || !r.ok){ throw new Error((r&&r.error)||'无法渲染 PDF 预览'); }
+    if(currentPage !== splitPreview.page || path !== splitPreview.filePath) return;
+    splitPreview.lastError = '';
+    splitPreview.page = r.page || currentPage;
+    splitPreview.total = r.total || splitPreview.total;
+    updateSplitPageUi();
+    if(img) img.src = r.data_url;
+  }catch(e){
+    if(token !== splitPreview.renderToken) return;
+    splitPreview.lastError = String(e);
+    // 不清除旧图。这样切页失败时仍保留上一张可见预览，避免变成空白/alt 文本。
+    if(loading){
+      loading.textContent = '预览加载失败：' + String(e);
+      loading.style.display='block';
+    }
+    toast('PDF 预览加载失败：'+e);
+  }finally{
+    if(token === splitPreview.renderToken && loading && !splitPreview.lastError){
+      loading.style.display='none';
+    }
+  }
+}
+function clearSplitPreview(){
+  const img=document.getElementById('pdf-page-img');
+  const loading=document.getElementById('pdf-page-loading');
+  if(splitPreview.timer) clearTimeout(splitPreview.timer);
+  if(img) img.removeAttribute('src');
+  if(loading) loading.style.display='none';
+  splitPreview.filePath=''; splitPreview.page=1; splitPreview.total=0; splitPreview.loading=false; splitPreview.lastError=''; splitPreview.renderToken++;
+  const hint=document.getElementById('split-file-hint');
+  if(hint) hint.textContent='已选择 PDF';
+  updateSplitPageUi();
+}
+
+/* ---------- 执行：解除限制 ---------- */
+async function doUnlock(){
+  const btn=document.getElementById('btn-unlock'); const res=document.getElementById('res-unlock');
+  const paths=state.unlock.map(f=>f.path);
+  setBusy(btn,true,'处理中…'); res.innerHTML='';
+  try{
+    const a=await getApi();
+    const out=await a.unlock(paths, document.getElementById('unlock-pwd').value);
+    let ok=0;
+    out.forEach(r=>{ res.appendChild(resRow(r.ok, r.name, r.output, r.error)); if(r.ok)ok++; });
+    toast(`完成：${ok}/${out.length} 个文件已解除限制`);
+  }catch(e){ res.appendChild(resRow(false,'错误','',String(e))); }
+  setBusy(btn,false);
+}
+
+/* ---------- 执行：合并 ---------- */
+async function doMerge(){
+  const btn=document.getElementById('btn-merge'); const res=document.getElementById('res-merge');
+  const paths=getMergePathsOrWarn();
+  if(!paths) return;
+  setBusy(btn,true,'合并中…'); res.innerHTML='';
+  try{
+    const a=await getApi();
+    const r=await a.merge(paths, document.getElementById('merge-add-page-numbers').checked);
+    const seqUsed = state.merge.filter(f=>Number.isInteger(f.seq)).length===state.merge.length && state.merge.length>0;
+    if(r.ok){ res.appendChild(resRow(true,`${paths.length} 个文件${seqUsed?' · 按编序合并':''}`,r.output)); toast('合并完成'); }
+    else { res.appendChild(resRow(false,'合并失败','',r.error)); toast('合并失败'); }
+  }catch(e){ res.appendChild(resRow(false,'合并失败','',String(e))); }
+  setBusy(btn,false);
+}
+
+/* ---------- 执行：拆分 ---------- */
+async function doSplit(){
+  const btn=document.getElementById('btn-split'); const res=document.getElementById('res-split');
+  const ranges=[...document.querySelectorAll('#ranges-split .rng')].map(r=>({
+    range:r.querySelector('.r-range').value.trim(),
+    filename:r.querySelector('.r-label').value.trim()
+  })).filter(x=>x.range);
+  setBusy(btn,true,'拆分中…'); res.innerHTML='';
+  try{
+    const a=await getApi();
+    const r=await a.split(state.split[0].path, ranges);
+    if(!r.ok){ res.appendChild(resRow(false,'拆分失败','',r.error)); toast('拆分失败'); }
+    else{
+      let ok=0;
+      r.results.forEach(x=>{ res.appendChild(resRow(x.ok,x.range,x.output,x.error)); if(x.ok)ok++; });
+      toast(`完成：生成 ${ok} 个文件`);
+    }
+  }catch(e){ res.appendChild(resRow(false,'拆分失败','',String(e))); }
+  setBusy(btn,false);
+}
+
+/* ---------- 公共 UI 帮助 ---------- */
+function resRow(ok, name, output, error){
+  const d=document.createElement('div');
+  d.className='res '+(ok?'ok':'ng');
+  const icon = ok
+    ? '<svg class="ri" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>'
+    : '<svg class="ri" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 8v5m0 3h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
+  if(ok){
+    d.innerHTML = `${icon}<span class="rn">${escapeHtml(name)}</span><span class="arrow">→</span><span class="ro">${escapeHtml(output)}</span>`;
+  }else{
+    d.innerHTML = `${icon}<span class="rn">${escapeHtml(name)}</span><span class="re">${escapeHtml(error||'失败')}</span><span class="copy-err" title="复制错误">复制</span>`;
+    d.style.cursor='pointer';
+    const doCopy=()=>{ copyText(`${name}：${error||'失败'}`); toast('错误信息已复制'); };
+    d.querySelector('.copy-err').onclick=e=>{e.stopPropagation();doCopy();};
+    d.onclick=doCopy;
+  }
+  return d;
+}
+function setBusy(btn, busy, label){
+  if(busy){ btn.dataset.html=btn.innerHTML; btn.disabled=true;
+    btn.innerHTML='<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-6.2-8.5"/></svg>'+label; }
+  else{ btn.innerHTML=btn.dataset.html; btn.disabled=false; }
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function escapeAttr(s){return escapeHtml(s);}
+
+const splitViewerWrap = document.getElementById('pdf-viewer-wrap');
+if(splitViewerWrap){
+  splitViewerWrap.addEventListener('wheel', e=>{
+    if(!(state.split.length && !state.split[0].error)) return;
+    e.preventDefault();
+    splitPreview.wheelAccum += e.deltaY;
+    if(splitPreview.wheelTimer) clearTimeout(splitPreview.wheelTimer);
+    splitPreview.wheelTimer = setTimeout(()=>{
+      const delta = splitPreview.wheelAccum;
+      splitPreview.wheelAccum = 0;
+      splitPreview.wheelTimer = null;
+      if(Math.abs(delta) < 8) return;
+      stepSplitPage(delta > 0 ? 1 : -1);
+    }, 120);
+  }, {passive:false});
+}
+
+['unlock','merge','split'].forEach(setupDrop);
+setupSelectedPageDrop('unlock');
+setupSelectedPageDrop('merge');
+setupSelectedPageDrop('split');
+</script>
+</body>
+</html>
